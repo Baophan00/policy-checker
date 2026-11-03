@@ -1,0 +1,26 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PolicyChecker — decentralized policy compliance</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--ink:#1c2430;--muted:#697586;--line:#e2e6ec;--accent:#2f5fd0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}.wrap{max-width:820px;margin:0 auto;padding:26px 20px 80px}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.brand{font-weight:650;font-size:19px;letter-spacing:-.01em}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font-size:12.5px;color:var(--muted)}.chip b{color:var(--ink);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px}
+h2{font-size:15px;font-weight:650;margin:0 0 4px}.sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+input,textarea,select{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit;font-size:14px;resize:vertical}
+textarea{min-height:60px}button{border:0;border-radius:8px;padding:10px 18px;font:inherit;font-weight:600;cursor:pointer;background:var(--accent);color:#fff}
+#log{display:none;background:#f0f4fa;border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;white-space:pre-wrap}
+#result{display:none;background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px}
+.field{margin-bottom:14px}label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--muted)}
+</style></head><body><div class="wrap">
+<header><div class="brand">PolicyChecker</div><div class="chips"><span class="chip"><b>GenLayer</b> Studio</span><a class="chip" href="https://explorer-studio.genlayer.com/address/0x6CD89930916fb4D613e05ee0FFDee5A4E45FFa95" target="_blank">Contract ↗</a></div></header>
+<div class="card"><h2>Check policy compliance</h2><p class="sub">Enter a question, a policy document URL, and an expected answer. GenLayer validators will check if the policy supports or contradicts.</p>
+<div class="field"><label>Question</label><input id="question" placeholder="Does the policy allow remote work?"/></div>
+<div class="field"><label>Policy document URL</label><input id="purl" placeholder="https://example.com/policy.html"/></div>
+<div class="field"><label>Expected answer</label><select id="answer"><option value="yes">Yes</option><option value="no">No</option></select></div>
+<button onclick="check()">Check compliance</button></div>
+<div id="log"></div><div id="result"></div>
+<div class="card" style="font-size:13px;color:var(--muted)"><b>How it works:</b> The contract fetches the policy via gl.nondet.web.render, asks an LLM to determine if it supports/contradicts/is silent on the question, and requires validator consensus (prompt_comparative) on the verdict before committing.</div>
+</div><script src="./bundle.js"></script></body></html>
