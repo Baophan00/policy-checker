@@ -29,19 +29,66 @@ async function check() {
   } catch (e) { log("Error: " + (e.message||e)); }
 }
 
-function showResult(r) {
-  const box = $("result"); box.style.display = "block";
-  const vColor = { SUPPORTED: "#1f7a4d", CONTRADICTED: "#a32b2b", SILENT: "#9a5b00" }[r.verdict] || "#697586";
-  const cColor = { COMPLIANT: "#1f7a4d", NON_COMPLIANT: "#a32b2b", UNCLEAR: "#9a5b00" }[r.compliance_status] || "#697586";
-  box.innerHTML = `
-    <div style="display:flex;gap:16px;margin-bottom:12px">
-      <div><span style="font-size:20px;font-weight:700;color:${vColor}">${r.verdict}</span><br/><span style="font-size:12px;color:#697586">Verdict</span></div>
-      <div><span style="font-size:20px;font-weight:700;color:${cColor}">${r.compliance_status}</span><br/><span style="font-size:12px;color:#697586">Compliance</span></div>
-      <div><span style="font-size:20px;font-weight:700">${r.confidence}%</span><br/><span style="font-size:12px;color:#697586">Confidence</span></div>
-    </div>
-    <div style="font-size:14px;margin-bottom:8px"><b>Relevant section:</b> ${r.relevant_section || "—"}</div>
-    <div style="font-size:14px"><b>Reasoning:</b> ${r.reasoning || "—"}</div>
-  `;
+function decodeCheck(raw) {
+  let value = raw;
+  if (typeof value === "string") {
+    const text = value.trim();
+    if (!text || text === "{}") return null;
+    try { value = JSON.parse(text); } catch { throw new Error("the stored check is not valid JSON"); }
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const str = (v) => (typeof v === "string" ? v : v === null || v === undefined ? "" : String(v));
+  const verdict = str(value.verdict).toUpperCase();
+  const status = str(value.compliance_status).toUpperCase();
+  const confidence = Number(value.confidence);
+  return {
+    verdict: ["SUPPORTED", "CONTRADICTED", "SILENT"].includes(verdict) ? verdict : "SILENT",
+    compliance: ["COMPLIANT", "NON_COMPLIANT", "UNCLEAR"].includes(status) ? status : "UNCLEAR",
+    confidence: Number.isFinite(confidence) ? Math.max(0, Math.min(100, Math.round(confidence))) : 0,
+    section: str(value.relevant_section),
+    reasoning: str(value.reasoning),
+    question: str(value.question),
+  };
+}
+
+function showResult(raw) {
+  const box = $("result");
+  box.style.display = "block";
+  box.replaceChildren();
+  let r;
+  try { r = decodeCheck(raw); }
+  catch (e) { box.textContent = "The stored check could not be read: " + e.message; return; }
+  if (!r) { box.textContent = "No stored check for this question yet."; return; }
+
+  const vColor = { SUPPORTED: "#1f7a4d", CONTRADICTED: "#a32b2b", SILENT: "#9a5b00" }[r.verdict];
+  const cColor = { COMPLIANT: "#1f7a4d", NON_COMPLIANT: "#a32b2b", UNCLEAR: "#9a5b00" }[r.compliance];
+  const add = (parent, tag, text, style) => {
+    const node = document.createElement(tag);
+    if (text !== undefined) node.textContent = text;
+    if (style) node.setAttribute("style", style);
+    parent.append(node);
+    return node;
+  };
+
+  const row = add(box, "div", undefined, "display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap");
+  const cell = (label, value, color) => {
+    const wrap = add(row, "div");
+    add(wrap, "span", value, `font-size:20px;font-weight:700;${color ? `color:${color}` : ""}`);
+    add(wrap, "br");
+    add(wrap, "span", label, "font-size:12px;color:#697586");
+  };
+  cell("Verdict", r.verdict, vColor);
+  cell("Compliance", r.compliance, cColor);
+  cell("Confidence", `${r.confidence}%`);
+
+  const section = add(box, "div", undefined, "font-size:14px;margin-bottom:8px");
+  add(section, "b", "Relevant section: ");
+  add(section, "span", r.section || "—");
+  const reasoning = add(box, "div", undefined, "font-size:14px");
+  add(reasoning, "b", "Reasoning: ");
+  add(reasoning, "span", r.reasoning || "—");
 }
 
 window.check = check;
+window.showResult = showResult;
+window.decodeCheck = decodeCheck;

@@ -1,0 +1,17 @@
+{
+  "name": "policy-checker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Decentralized policy compliance checking with GenLayer consensus",
+  "scripts": {
+    "build": "esbuild app/src.js --bundle --format=iife --minify --outfile=app/bundle.js",
+    "deploy": "surge app/ policy-checker.surge.sh"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  },
+  "dependencies": {
+    "genlayer-js": "1.1.8"
+  }
+}
